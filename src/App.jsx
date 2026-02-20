@@ -107,7 +107,7 @@ export default function App(){
           <form onSubmit={adicionarGanho}>
             <div className="form-group">
               <input
-                placeholder="Descrição (ex: Salário)"
+                placeholder="Descrição"
                 value={ganho.descricao}
                 onChange={e => setGanho({ ...ganho, descricao: e.target.value })}
               />
@@ -138,7 +138,7 @@ export default function App(){
           <form onSubmit={adicionarDespesa}>
             <div className="form-group">
               <input
-                placeholder="Descrição (ex: Aluguel)"
+                placeholder="Descrição"
                 value={despesa.descricao}
                 onChange={e => setDespesa({ ...despesa, descricao: e.target.value })}
               />
