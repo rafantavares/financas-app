@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react'
 import './index.css'
+import {PieChart, Pie, Cell, Tooltip, Legend} from 'recharts'
 
 const STORAGE_KEY = 'financas_dados'
 
@@ -67,6 +68,16 @@ export default function App(){
   }
 
   const ordenados = [...registros].sort((a,b) => new Date(b.data) - new Date(a.data))
+
+  const dadosPizza = Object.entries(
+    registros.filter(r => r.tipo === 'despesa')
+    .reduce ((acc, r) => {
+      acc[r.categoria] = (acc[r.categria] || 0) + r.valor
+      return acc
+    }, {})
+  ).map(([categoria, valor]) => ({name: categoria, value: valor}))
+
+  const CORES = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899', '#14b8a6']
 
   return (
     <div className='container'>
@@ -167,6 +178,27 @@ export default function App(){
           </form>
         </div>
       </div>
+
+      {dadosPizza.length > 0 && (
+        <div className="box" style={{ marginBottom: '20px' }}>
+          <h2>📊 Gastos por Categoria</h2>
+          <PieChart width={400} height={300} style={{ margin: '0 auto' }}>
+            <Pie
+              data={dadosPizza}
+              cx={200}
+              cy={140}
+              outerRadius={100}
+              dataKey="value"
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            >
+              {dadosPizza.map((entry, index) => (
+                <Cell key={index} fill={CORES[index % CORES.length]} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(value) => formatReal(value)} />
+          </PieChart>
+        </div>
+      )}
 
       <div className="lista">
         <h2>Histórico de Lançamentos</h2>
