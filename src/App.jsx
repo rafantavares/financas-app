@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react'
 import './index.css'
-import {PieChart, Pie, Cell, Tooltip, Legend} from 'recharts'
+import {PieChart, Pie, Cell, Tooltip} from 'recharts'
 
 const STORAGE_KEY = 'financas_dados'
 
@@ -18,8 +18,8 @@ export default function App(){
     return salvo ? JSON.parse(salvo): []
   })
 
-  const [ganho, setGanho] = useState ({ descricao: '', valor: '', data: ''})
-  const [despesa, setDespesa] = useState ({descricao: '', valor: '', categoria: 'Alimentação', data: ''})
+  const [ganho, setGanho] = useState({ descricao: '', valor: '', data: ''})
+  const [despesa, setDespesa] = useState({descricao: '', valor: '', categoria: 'Alimentação', data: ''})
 
   useEffect(() =>{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(registros))
@@ -43,7 +43,6 @@ export default function App(){
       tipo: 'ganho',
       descricao: ganho.descricao,
       valor: parseFloat(ganho.valor),
-      categoria: ganho.categoria,
       data: ganho.data
     }])
     setGanho({descricao: '', valor: '', data: ''})
@@ -70,11 +69,12 @@ export default function App(){
   const ordenados = [...registros].sort((a,b) => new Date(b.data) - new Date(a.data))
 
   const dadosPizza = Object.entries(
-    registros.filter(r => r.tipo === 'despesa')
-    .reduce ((acc, r) => {
-      acc[r.categoria] = (acc[r.categria] || 0) + r.valor
-      return acc
-    }, {})
+    registros
+      .filter(r => r.tipo === 'despesa')
+      .reduce((acc, r) => {
+        acc[r.categoria] = (acc[r.categoria] || 0) + r.valor
+        return acc
+      }, {})
   ).map(([categoria, valor]) => ({name: categoria, value: valor}))
 
   const CORES = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899', '#14b8a6']
@@ -82,16 +82,16 @@ export default function App(){
   return (
     <div className='container'>
       <header>
-        <h1> Controle Financeiro </h1>
+        <h1>💰 Controle Financeiro</h1>
         <p>Gerenciamento de ganhos e despesas</p>
       </header>
 
       <div className="cards">
-        <div className='card salvo'>
+        <div className='card saldo'>
           <h3>Saldo Atual</h3>
           <div className="valor">{formatReal(saldo)}</div>
         </div>
-        <div className = "card ganhos">
+        <div className="card ganhos">
           <h3>Total de Ganhos</h3>
           <div className="valor">{formatReal(totalGanhos)}</div>
         </div>
@@ -101,13 +101,13 @@ export default function App(){
         </div>
       </div>
 
-       <div className="painel">
+      <div className="painel">
         <div className="box ganhos">
           <h2>+ Adicionar Ganho</h2>
           <form onSubmit={adicionarGanho}>
             <div className="form-group">
               <input
-                placeholder="Descrição"
+                placeholder="Descrição (ex: Salário)"
                 value={ganho.descricao}
                 onChange={e => setGanho({ ...ganho, descricao: e.target.value })}
               />
@@ -138,7 +138,7 @@ export default function App(){
           <form onSubmit={adicionarDespesa}>
             <div className="form-group">
               <input
-                placeholder="Descrição"
+                placeholder="Descrição (ex: Aluguel)"
                 value={despesa.descricao}
                 onChange={e => setDespesa({ ...despesa, descricao: e.target.value })}
               />
@@ -177,31 +177,31 @@ export default function App(){
             <button type="submit" className="btn despesa">Adicionar Despesa</button>
           </form>
         </div>
+
+        {dadosPizza.length > 0 && (
+          <div className="box">
+            <h2>📊 Gastos por Categoria</h2>
+            <PieChart width={300} height={300} style={{ margin: '0 auto' }}>
+              <Pie
+                data={dadosPizza}
+                cx={150}
+                cy={140}
+                outerRadius={100}
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {dadosPizza.map((entry, index) => (
+                  <Cell key={index} fill={CORES[index % CORES.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatReal(value)} />
+            </PieChart>
+          </div>
+        )}
       </div>
 
-      {dadosPizza.length > 0 && (
-        <div className="box" style={{ marginBottom: '20px' }}>
-          <h2>📊 Gastos por Categoria</h2>
-          <PieChart width={400} height={300} style={{ margin: '0 auto' }}>
-            <Pie
-              data={dadosPizza}
-              cx={200}
-              cy={140}
-              outerRadius={100}
-              dataKey="value"
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-            >
-              {dadosPizza.map((entry, index) => (
-                <Cell key={index} fill={CORES[index % CORES.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value) => formatReal(value)} />
-          </PieChart>
-        </div>
-      )}
-
       <div className="lista">
-        <h2>Histórico de Lançamentos</h2>
+        <h2>📋 Histórico de Lançamentos</h2>
         {ordenados.length === 0 ? (
           <div className="vazio">Nenhum lançamento ainda. Comece adicionando um ganho ou despesa!</div>
         ) : (
